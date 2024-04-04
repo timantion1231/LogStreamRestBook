@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 public class MainController {
 
@@ -23,7 +25,7 @@ public class MainController {
 
     @GetMapping("/api/book")
     public String getBook() {
-        Books books = new Books("186", "Title");
+        Books books = new Books(UUID.randomUUID(), "Title");
         String jsonData = null;
 
         try {
@@ -36,7 +38,7 @@ public class MainController {
 
 
     @PostMapping("/api/addBook")
-    public String addBook(@RequestParam String isbn, String title) {
+    public String addBook(@RequestParam UUID isbn, String title) {
         Books books = new Books(isbn, title);
         String jsonData = null;
 
