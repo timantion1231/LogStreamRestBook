@@ -1,52 +1,53 @@
 package com.rest.books.controller;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rest.books.entity.Books;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.rest.books.repository.BookRepo;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.List;
 
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 public class MainController {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final BookRepo repo;
 
-    @GetMapping("/api/main")
-    public String mainListener() {
-        return "Test";
+    @SneakyThrows
+    @GetMapping("/all")
+    public List<Books> getAllBooks() {
+        return repo.findAll();
     }
 
-    @GetMapping("/api/book")
-    public String getBook() {
-        Books books = new Books(UUID.randomUUID(), "Title");
-        String jsonData = null;
-
-        try {
-            jsonData = objectMapper.writeValueAsString(books);
-        } catch (JsonProcessingException e) {
-            System.out.println("Error books");
-        }
-        return jsonData;
+    @GetMapping("/isbn/")
+    public Books getByIsbn(@RequestParam String isbn) {
+        return repo.findByIsbn(isbn);
     }
 
-
-    @PostMapping("/api/addBook")
-    public String addBook(@RequestParam UUID isbn, String title) {
-        Books books = new Books(isbn, title);
-        String jsonData = null;
-
-        try {
-            jsonData = objectMapper.writeValueAsString(books);
-        } catch (JsonProcessingException e) {
-            System.out.println("Error books");
+    @PostMapping("/add/")
+    public String addBook(@RequestBody Books book) {
+        if(repo.existsById(book.getIsbn())){
+            return "Book exists";
         }
-        return jsonData;
+        return "New book: " + repo.save(book);
+
+    }
+
+    @DeleteMapping("/delete/")
+    void deleteBook(@RequestParam String isbn) {
+        repo.deleteById(isbn);
+    }
+
+    @PutMapping("/change/")
+    public String changeBook(@RequestBody Books book){
+        if(!repo.existsById(book.getIsbn())){
+            return "Book does not exists";
+        }
+        return repo.save(book).toString();
     }
 }
